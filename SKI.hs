@@ -1,5 +1,6 @@
 import System.IO
 import System.Environment
+import Data.Char (toUpper)
 import Control.Monad (mapM)
 import Data.List (intercalate)
 import Text.ParserCombinators.Parsec
@@ -8,10 +9,10 @@ import Text.ParserCombinators.Parsec
 data SKI = S | K | I | List [SKI] | Atom String
 
 instance Show SKI where
-    show S         = "s"
-    show K         = "k"
-    show I         = "i"
-    show (Atom st) = '\'' : st
+    show S         = "S"
+    show K         = "K"
+    show I         = "I"
+    show (Atom st) = '\'' : map toUpper st
     show (List xs) = "(" ++ intercalate " " (map show xs) ++ ")"
 
 -- parsers
@@ -30,15 +31,15 @@ parseAtom = do
     return $ Atom c
 
 parsePrim :: Parser SKI
-parsePrim = (char 's' >> return S)
-        <|> (char 'k' >> return K)
-        <|> (char 'i' >> return I)
+parsePrim = ((char 's' <|> char 'S') >> return S)
+        <|> ((char 'k' <|> char 'K') >> return K)
+        <|> ((char 'i' <|> char 'I') >> return I)
 
 parseList :: Parser SKI
 parseList = do
     char '('
     spaces
-    xs <- sepBy1 parseSKI spaces
+    xs <- sepBy parseSKI spaces
     spaces
     char ')'
     return (List xs)
@@ -62,9 +63,7 @@ eval (List [S,f,g,x]) = do f' <- eval f
                            x' <- eval x
                            eval $ List [f', x', List [g', x']]
 -- cases for no args
-eval (List [S]) = return S
-eval (List [K]) = return K
-eval (List [I]) = return I
+eval (List [x]) = eval x
 eval (List []) = return (List [])
 -- cases for not enough args
 eval (List [S,x,y]) = do
@@ -103,11 +102,13 @@ eval (List (xs@(List _):ys)) = do
 --eval x = Left $ "Bad form: " ++ show x
 
 readEvalShow :: String -> String
-readEvalShow input = let showIt (Right val) = "=> " ++ show val
-                         showIt (Left err)  = err
-                     in  showIt $ do parsed <- runParse input
-                                     evaled <- eval parsed
-                                     return evaled
+readEvalShow input
+    | null input = ""
+    | otherwise  = let showIt (Right val) = "=> " ++ show val ++ "\n"
+                       showIt (Left err) = err ++ "\n"
+                    in showIt $ do parsed <- runParse input
+                                   evaled <- eval parsed
+                                   return evaled
 
 main :: IO ()
 main = do
@@ -122,5 +123,5 @@ loop = do
     putStr "> "
     hFlush stdout
     line <- getLine
-    putStrLn $ readEvalShow line
+    putStr $ readEvalShow line
     loop
