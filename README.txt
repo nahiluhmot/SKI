@@ -17,7 +17,7 @@ are evaluated and then return as an argument to the base function. Examples:
     => (k 'a)
     > (i)
     => i
-    > (s k i (i k))
+    > (s i k (i k))
     => (k (k k))
 When too many arguments are given, the function is applied to the number that it
 takes, then the resulting function evalates the remainder of the arguments.
@@ -26,7 +26,7 @@ Examples:
     => 'x
     > (k i s s)
     => s
-    > (i k (s k i k))
+    > (i k (s i k k))
     => (k (k (k k)))
 To use the interactive interpreter, just call `runhaskell SKI.hs`. To run a
 file, supply the file at the end (`runhaskell SKI.hs test.ski`).
