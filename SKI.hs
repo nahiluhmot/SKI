@@ -57,10 +57,10 @@ eval (List (a@(Atom _):xs)) = do
 -- cases for perfect number of args
 eval (List [I,x])     = eval x
 eval (List [K,x,y])   = eval x
-eval (List [S,f,g,x]) = do g' <- eval g
-                           f' <- eval f
+eval (List [S,f,g,x]) = do f' <- eval f
+                           g' <- eval g
                            x' <- eval x
-                           eval $ List [g', x', List [f', x']]
+                           eval $ List [f', x', List [g', x']]
 -- cases for no args
 eval (List [S]) = return S
 eval (List [K]) = return K
